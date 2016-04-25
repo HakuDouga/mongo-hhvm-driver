@@ -47,13 +47,11 @@ class MongoDBDriverManagerData
 			throw MongoDriver::Utils::throwRunTimeException("Serialization of MongoDB\\Driver\\Manager is not allowed");
 		}
 
-		void sweep() {
-			mongoc_client_destroy(m_client);
-		}
+		void sweep();
 
 		~MongoDBDriverManagerData() {
 			sweep();
-		};
+		}
 };
 
 void HHVM_METHOD(MongoDBDriverManager, __construct, const String &dsn, const Array &options, const Array &driverOptions);

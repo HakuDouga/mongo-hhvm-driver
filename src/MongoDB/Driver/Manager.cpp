@@ -20,6 +20,7 @@
 #include "hphp/runtime/ext/stream/ext_stream.h"
 
 #include "../../../bson.h"
+#include "../../../pool.h"
 #include "../../../utils.h"
 #include "../../../mongodb.h"
 
@@ -432,6 +433,12 @@ static bool hippo_mongo_driver_manager_apply_ssl_opts(mongoc_client_t *client, c
 	return 1;
 }
 
+
+void MongoDBDriverManagerData::sweep()
+{
+	Pool::ReturnClient(mongoc_client_get_uri(m_client), m_client);
+}
+
 void HHVM_METHOD(MongoDBDriverManager, __construct, const String &dsn, const Array &options, const Array &driverOptions)
 {
 	MongoDBDriverManagerData* data = Native::data<MongoDBDriverManagerData>(this_);
@@ -444,7 +451,7 @@ void HHVM_METHOD(MongoDBDriverManager, __construct, const String &dsn, const Arr
 	hippo_mongo_driver_manager_apply_rp(uri, options);
 	hippo_mongo_driver_manager_apply_wc(uri, options);
 
-	client = mongoc_client_new_from_uri(uri);
+	client = Pool::GetClient(uri);
 
 	if (!client) {
 		throw MongoDriver::Utils::throwRunTimeException("Failed to create Manager from URI: '" + dsn + "'");
